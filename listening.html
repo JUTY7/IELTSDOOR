@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Listening - IELTS DOOR</title>
+<title>Reading - IELTS DOOR</title>
 <style>
 body { font-family: Arial; background:#f5f5f5; text-align:center; padding:30px; }
 h1 { color:#0d6efd; font-size:36px; margin-bottom:10px;}
@@ -12,18 +12,16 @@ label { display:block; margin:8px 0; font-size:16px; }
 #timer { font-size:18px; font-weight:bold; color:#0d6efd; margin-bottom:15px; }
 #sectionTitle { font-size:24px; color:#0d6efd; margin-bottom:10px;}
 #questionContainer { margin-bottom:15px; }
-#result { font-size:20px; font-weight:bold; margin-top:15px; color:#0d6efd; }
 .qnumContainer { margin-top:15px; text-align:center; }
 .qnumBtn { display:inline-block; width:30px; height:30px; border-radius:50%; border:1px solid #0d6efd; margin:3px; cursor:pointer; background:white; color:#0d6efd; line-height:30px; font-weight:bold; }
 .qnumBtn.answered { background:#0d6efd; color:white; }
-navButtons { margin-top:20px; }
 </style>
 </head>
 <body>
 
-<h1>Listening Section</h1>
+<h1>IELTS Reading - Full Test</h1>
 <div class="box">
-  <div id="timer">Time Left: 32:00</div>
+  <div id="timer">Time Left: 60:00</div>
   <div id="sectionTitle"></div>
   <div id="questionContainer"></div>
 
@@ -41,23 +39,29 @@ navButtons { margin-top:20px; }
 
 <script>
 // === CONFIGURATION ===
-const questionsPerSection = 10; // for each page/section
-let currentQuestionIndex = 0;
-let answers = []; // store answers
 let questions = [];
+let answers = [];
+let currentQuestionIndex = 0;
 
-// Fill 40 placeholder questions
-for(let i=1;i<=40;i++){
-  questions.push({
-    q:`Question placeholder ${i}`,
-    options:["A","B","C","D"],
-    answer:"A"
-  });
+// === PASSAGES & QUESTIONS ===
+// Passage 1: 13 questions
+for(let i=1;i<=13;i++){
+  questions.push({q:`Passage 1 - Question ${i}`, options:["A","B","C","D"], answer:"A"});
+  answers.push(null);
+}
+// Passage 2: 13 questions
+for(let i=14;i<=26;i++){
+  questions.push({q:`Passage 2 - Question ${i}`, options:["A","B","C","D"], answer:"A"});
+  answers.push(null);
+}
+// Passage 3: 14 questions
+for(let i=27;i<=40;i++){
+  questions.push({q:`Passage 3 - Question ${i}`, options:["A","B","C","D"], answer:"A"});
   answers.push(null);
 }
 
 // === TIMER ===
-let totalTime = 32*60; // 32 min
+let totalTime = 60*60; // 60 minutes
 const timerEl = document.getElementById('timer');
 const countdown = setInterval(()=>{
   let minutes = Math.floor(totalTime/60);
@@ -78,6 +82,7 @@ function renderQuestion(){
   const sectionTitle = document.getElementById('sectionTitle');
   const q = questions[currentQuestionIndex];
   sectionTitle.innerText = `Question ${currentQuestionIndex+1}`;
+  
   let html = `<p>${q.q}</p>`;
   q.options.forEach(opt=>{
     html += `<label><input type="radio" name="answer" value="${opt}" ${answers[currentQuestionIndex]===opt?"checked":""} onchange="selectAnswer(this)"> ${opt}</label>`;
@@ -96,7 +101,7 @@ function selectAnswer(input){
 function renderQuestionNumbers(){
   const container = document.getElementById('qnumContainer');
   container.innerHTML = '';
-  questions.forEach((_,idx)=>{
+  questions.forEach((_, idx)=>{
     const btn = document.createElement('div');
     btn.className = 'qnumBtn';
     if(answers[idx]) btn.classList.add('answered');
@@ -122,11 +127,15 @@ function submitExam(){
   questions.forEach((q,idx)=>{
     if(answers[idx]===q.answer) score++;
   });
-  document.getElementById('questionContainer').innerHTML = `<h2>🎯 Listening Result Dashboard</h2>
-    <p>Total Questions: ${questions.length}</p>
+  const totalQuestions = questions.length;
+  const percentage = (score/totalQuestions*100).toFixed(2);
+  const band = calculateBand(percentage);
+
+  document.getElementById('questionContainer').innerHTML = `<h2>🎯 Reading Result Dashboard</h2>
+    <p>Total Questions: ${totalQuestions}</p>
     <p>Correct Answers: ${score}</p>
-    <p>Percentage Score: ${(score/questions.length*100).toFixed(2)}%</p>
-    <p>Band Score: ${calculateBand((score/questions.length*100).toFixed(2))}</p>`;
+    <p>Percentage Score: ${percentage}%</p>
+    <p>Band Score: ${band}</p>`;
   document.getElementById('sectionTitle').innerText = "Test Completed";
   document.getElementById('submitBtn').disabled = true;
   clearInterval(countdown);
@@ -151,3 +160,4 @@ renderQuestion();
 
 </body>
 </html>
+
