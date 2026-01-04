@@ -5,7 +5,8 @@
 <style>
 body { font-family: Arial; background:#f5f5f5; margin:0; padding:0; }
 h1 { color:#0d6efd; text-align:center; padding:20px 0; }
-.container { display:flex; height:80vh; margin:20px; background:white; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3); overflow:hidden; }
+#timer { text-align:center; font-size:20px; font-weight:bold; color:#0d6efd; margin-bottom:10px; }
+.container { display:flex; height:70vh; margin:20px; background:white; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3); overflow:hidden; }
 .passage, .questions { padding:20px; overflow-y:auto; }
 .passage { background:#f0f8ff; width:50%; resize:horizontal; min-width:200px; max-width:80%; }
 .questions { width:50%; resize:horizontal; min-width:200px; max-width:80%; border-left:2px solid #0d6efd; }
@@ -22,6 +23,7 @@ textarea { width:95%; margin-bottom:8px; font-size:16px; }
 <body>
 
 <h1>IELTS Reading Section</h1>
+<div id="timer">Time Left: 60:00</div>
 
 <div class="container">
   <div class="passage" id="passageContainer"></div>
@@ -48,6 +50,22 @@ const passages = [
 
 let currentPassage = 0;
 let answers = passages.map(p=>Array(p.questions).fill(null));
+
+// === TIMER ===
+let totalTime = 60*60; // 60 minutes
+const timerEl = document.getElementById('timer');
+const countdown = setInterval(()=>{
+  let minutes = Math.floor(totalTime/60);
+  let seconds = totalTime % 60;
+  if(seconds<10) seconds='0'+seconds;
+  timerEl.innerText = `Time Left: ${minutes}:${seconds}`;
+  totalTime--;
+  if(totalTime<0){
+    clearInterval(countdown);
+    alert("Time's up!");
+    submitReading();
+  }
+},1000);
 
 // === RENDER PASSAGE & QUESTIONS ===
 function renderPassage(){
@@ -87,7 +105,7 @@ function selectAnswer(index,input){
 // === SCROLL TO QUESTION ===
 function scrollToQuestion(index){
   const questionsEl = document.getElementById('questionsContainer');
-  const questionLabel = questionsEl.querySelectorAll('p')[index*2]; // Each question has <p> and 4 options, we target <p>
+  const questionLabel = questionsEl.querySelectorAll('p')[index*2];
   questionLabel.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
@@ -97,6 +115,7 @@ function prevPassage(){ if(currentPassage>0){currentPassage--; renderPassage();}
 
 // === SUBMIT EXAM ===
 function submitReading(){
+  clearInterval(countdown);
   let totalQuestions=0;
   let answeredCount=0;
   answers.forEach(pArr=>{
@@ -112,3 +131,4 @@ renderPassage();
 
 </body>
 </html>
+
