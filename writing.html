@@ -1,28 +1,315 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Writing - IELTS DOOR</title>
+<title>IELTS Writing Test - IELTS DOOR</title>
+
 <style>
-body { font-family: Arial; background:#f5f5f5; text-align:center; padding:50px; }
-h1 { color:#0d6efd; font-size:40px; }
-.box { background:white; width:650px; margin:auto; padding:30px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:left; }
-textarea { width:100%; height:150px; padding:10px; margin:10px 0; font-size:16px; }
-button { background:#0d6efd; color:white; padding:12px 20px; border:none; border-radius:6px; font-size:16px; cursor:pointer; margin:10px; }
-button:hover { background:#0948a1; }
+body{
+ font-family:Arial;
+ background:#f5f5f5;
+ text-align:center;
+ padding:20px;
+ transition:0.3s;
+}
+
+h1{color:#0d6efd;}
+
+.container{
+ background:#ffffff;
+ width:1000px;
+ margin:auto;
+ padding:25px;
+ border-radius:15px;
+ box-shadow:0 5px 20px rgba(0,0,0,0.3);
+ text-align:left;
+ transition:0.3s;
+}
+
+.dark{
+ background:#0b1220 !important;
+ color:white !important;
+}
+.dark .container{
+ background:#121e38;
+ color:white;
+}
+.dark textarea{
+ background:#0b1220;
+ color:white;
+ border:2px solid #0d6efd;
+}
+.dark #timer{
+ color:#57ff9a;
+}
+.dark .resultBox{
+ background:#1b2e52;
+ color:white;
+}
+
+#timer{
+ font-size:18px;
+ font-weight:bold;
+ color:#d9534f;
+ margin-bottom:15px;
+}
+
+.tab-btn{
+ background:#eaefff;
+ color:#0d6efd;
+ padding:10px 15px;
+ border-radius:8px;
+ border:1px solid #0d6efd;
+ cursor:pointer;
+ margin-right:5px;
+ font-weight:bold;
+}
+.tab-btn.active{
+ background:#0d6efd;
+ color:white;
+}
+
+textarea{
+ width:100%;
+ height:250px;
+ padding:10px;
+ border-radius:10px;
+ border:2px solid #0d6efd;
+ font-size:16px;
+ resize:none;
+ background:#f8fbff;
+}
+
+.wordCountBox{
+ margin-top:8px;
+ font-weight:bold;
+ color:#0d6efd;
+}
+
+button{
+ background:#0d6efd;
+ color:white;
+ padding:10px 18px;
+ border:none;
+ border-radius:8px;
+ margin-top:15px;
+ cursor:pointer;
+}
+button:hover{
+ background:#073a8f;
+}
+
+.resultBox{
+ background:#eef5ff;
+ padding:15px;
+ border-radius:10px;
+ margin-top:15px;
+}
+
+.teacherBox{
+ background:#fff3cd;
+ padding:15px;
+ border-radius:10px;
+ margin-top:15px;
+ border:1px solid #d39e00;
+}
+.dark .teacherBox{
+ background:#2c2c08;
+}
+.score{
+ font-weight:bold;
+ color:#0d6efd;
+}
 </style>
 </head>
+
 <body>
 
-<h1>Writing Section</h1>
-<div class="box">
-  <p>✍️ Task 1: Describe the chart / diagram (150 words)</p>
-  <textarea placeholder="Type your answer here..."></textarea>
+<h1>IELTS Writing Test</h1>
 
-  <p>✍️ Task 2: Essay writing (250 words)</p>
-  <textarea placeholder="Type your essay here..."></textarea>
+<button onclick="toggleDark()">🌙 Toggle Dark Mode</button>
 
-  <button onclick="window.location.href='index.html'">Back to Home</button>
+<div class="container">
+
+<div id="timer">Time Left: 60:00</div>
+
+<button id="tab1" class="tab-btn active" onclick="showTask(1)">Writing Task 1</button>
+<button id="tab2" class="tab-btn" onclick="showTask(2)">Writing Task 2</button>
+
+<hr>
+
+<div id="task1Box">
+<h2>Writing Task 1</h2>
+<p><b>Write at least 150 words.</b></p>
+<textarea id="task1" oninput="saveData(); updateWordCount(1)"></textarea>
+<div class="wordCountBox">Words: <span id="wc1">0</span> / 150</div>
 </div>
+
+<div id="task2Box" style="display:none;">
+<h2>Writing Task 2</h2>
+<p><b>Write at least 250 words.</b></p>
+<textarea id="task2" oninput="saveData(); updateWordCount(2)"></textarea>
+<div class="wordCountBox">Words: <span id="wc2">0</span> / 250</div>
+</div>
+
+<center>
+<button onclick="submitWriting()">Submit</button>
+</center>
+
+<div id="result"></div>
+
+</div>
+
+<script>
+// ================= DARK MODE =================
+function toggleDark(){
+ document.body.classList.toggle("dark");
+ localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+}
+
+if(localStorage.getItem("darkMode") === "true"){
+ document.body.classList.add("dark");
+}
+
+// ================= TIMER =================
+let time = 60*60;
+let warned10=false;
+let warned1=false;
+
+let timer = setInterval(()=>{
+ let m=Math.floor(time/60);
+ let s=time%60;
+ if(s<10) s="0"+s;
+ document.getElementById("timer").innerHTML=`Time Left: ${m}:${s}`;
+
+ if(time===600 && !warned10){
+  warned10=true;
+  alert("⚠️ 10 minutes remaining!");
+ }
+
+ if(time===60 && !warned1){
+  warned1=true;
+  alert("⚠️ 1 minute remaining!");
+ }
+
+ if(time<=0){
+  clearInterval(timer);
+  alert("⏰ Time is over! Auto submitted.");
+  submitWriting();
+ }
+ time--;
+},1000);
+
+
+// ================= SAVE =================
+function saveData(){
+ localStorage.setItem("task1", document.getElementById("task1").value);
+ localStorage.setItem("task2", document.getElementById("task2").value);
+}
+
+// Load saved text
+document.getElementById("task1").value = localStorage.getItem("task1") || "";
+document.getElementById("task2").value = localStorage.getItem("task2") || "";
+updateWordCount(1);
+updateWordCount(2);
+
+
+// ================= TABS =================
+function showTask(n){
+ if(n===1){
+  task1Box.style.display="block";
+  task2Box.style.display="none";
+  tab1.classList.add("active");
+  tab2.classList.remove("active");
+ } else {
+  task1Box.style.display="none";
+  task2Box.style.display="block";
+  tab2.classList.add("active");
+  tab1.classList.remove("active");
+ }
+}
+
+
+// ================= WORD COUNT =================
+function countWords(t){
+ return t.trim().split(/\s+/).filter(x=>x.length>0).length;
+}
+function updateWordCount(t){
+ if(t===1) wc1.innerText=countWords(task1.value);
+ else wc2.innerText=countWords(task2.value);
+}
+
+
+// ================= SUBMIT =================
+function submitWriting(){
+ clearInterval(timer);
+
+ let t1=task1.value;
+ let t2=task2.value;
+
+ let w1=countWords(t1);
+ let w2=countWords(t2);
+
+ let html = `<div class='resultBox'>
+ <h2>Writing Submitted</h2>
+ <p><b>Task 1 Words:</b> ${w1} (Required: 150)</p>
+ <p><b>Task 2 Words:</b> ${w2} (Required: 250)</p>`;
+
+ if(w1<150 || w2<250){
+  html+=`<p style='color:red;'><b>Warning:</b> Minimum word count not met.</p>`;
+ }
+
+ html+=`</div>`;
+
+ // ========== TEACHER MARKING PANEL ==========
+ html+=`
+ <div class="teacherBox">
+ <h3>Teacher Marking Panel</h3>
+
+ <label>Task Achievement:</label>
+ <input type="number" id="ta" min="0" max="9" step="0.5"><br><br>
+
+ <label>Coherence & Cohesion:</label>
+ <input type="number" id="cc" min="0" max="9" step="0.5"><br><br>
+
+ <label>Lexical Resource:</label>
+ <input type="number" id="lr" min="0" max="9" step="0.5"><br><br>
+
+ <label>Grammatical Range & Accuracy:</label>
+ <input type="number" id="gra" min="0" max="9" step="0.5"><br><br>
+
+ <button onclick="calculateBand()">Calculate Final Band</button>
+
+ <p class='score' id="finalBand"></p>
+ </div>
+ `;
+
+ result.innerHTML = html;
+
+ task1.disabled=true;
+ task2.disabled=true;
+}
+
+
+// ================= BAND CALCULATOR =================
+function calculateBand(){
+ let ta=parseFloat(document.getElementById("ta").value)||0;
+ let cc=parseFloat(document.getElementById("cc").value)||0;
+ let lr=parseFloat(document.getElementById("lr").value)||0;
+ let gra=parseFloat(document.getElementById("gra").value)||0;
+
+ let final = ((ta+cc+lr+gra)/4).toFixed(1);
+
+ document.getElementById("finalBand").innerHTML =
+ `Final IELTS Writing Band: <b>${final}</b>`;
+}
+
+
+// ================= EXAM SECURITY =================
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('copy', e => e.preventDefault());
+document.addEventListener('cut', e => e.preventDefault());
+document.addEventListener('paste', e => e.preventDefault());
+</script>
 
 </body>
 </html>
