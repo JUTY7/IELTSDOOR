@@ -1,33 +1,244 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Speaking - IELTS DOOR</title>
+<meta charset="UTF-8">
+<title>IELTS Speaking Test - Professional</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body { font-family: Arial; background:#f5f5f5; text-align:center; padding:50px; }
-h1 { color:#0d6efd; font-size:40px; }
-.box { background:white; width:650px; margin:auto; padding:30px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:left; }
-li { margin:10px 0; font-size:16px; }
-button { background:#0d6efd; color:white; padding:12px 20px; border:none; border-radius:6px; font-size:16px; cursor:pointer; margin:10px; }
-button:hover { background:#0948a1; }
+body{
+  font-family: Arial;
+  margin:0;
+  background:#0E1A2A;
+  color:white;
+}
+header{
+  background:#122743;
+  padding:20px;
+  text-align:center;
+  font-size:24px;
+  font-weight:bold;
+  border-bottom:2px solid #4ea3ff;
+}
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:20px;
+}
+.panel{
+  background:#122743;
+  padding:20px;
+  border-radius:12px;
+  margin-bottom:15px;
+  border:1px solid #4ea3ff;
+}
+button{
+  padding:10px 20px;
+  border-radius:6px;
+  border:none;
+  cursor:pointer;
+  background:#4ea3ff;
+  font-weight:bold;
+}
+button:disabled{
+  background:#555;
+  cursor:not-allowed;
+}
+.timer{
+  font-size:20px;
+  font-weight:bold;
+  margin:10px 0;
+}
+.success{
+  background:#0b3d2e;
+  padding:12px;
+  border-radius:8px;
+  margin-top:10px;
+}
+.warning{
+  background:#3d280b;
+  padding:12px;
+  border-radius:8px;
+  margin-top:10px;
+}
+.result-box{
+  background:#061625;
+  padding:20px;
+  border-radius:12px;
+  border:1px solid #4ea3ff;
+}
+.score{
+  font-size:40px;
+  font-weight:bold;
+  margin-bottom:10px;
+}
+.criteria{
+  margin:8px 0;
+  font-size:17px;
+}
+.hidden{
+  display:none;
+}
+footer{
+  text-align:center;
+  padding:20px;
+  color:#aaa;
+}
 </style>
 </head>
+
 <body>
 
-<h1>Speaking Section</h1>
-<div class="box">
-  <p>🗣 Sample Speaking Questions:</p>
-  <ol>
-    <li>Introduce yourself and your family.</li>
-    <li>Describe your favorite hobby.</li>
-    <li>Talk about a recent trip or event.</li>
-    <li>Discuss your opinion on a current topic.</li>
-  </ol>
+<header>IELTS Speaking Test – Cambridge Style</header>
 
-  <p>💡 Tip: Practice recording yourself using a voice recorder app. Review and improve your answers.</p>
+<div class="container">
 
-  <button onclick="window.location.href='index.html'">Back to Home</button>
+<div id="introPanel" class="panel">
+<h2>Speaking Test Simulation</h2>
+<p>This is a fully professional IELTS speaking simulator. You will answer questions for Parts 1, 2, and 3. Your responses will be analyzed and graded by AI according to official IELTS criteria.</p>
+<button onclick="startTest()">Start Test</button>
 </div>
+
+<div id="testPanel" class="panel hidden">
+<h2 id="sectionTitle">Speaking Part 1 – Introduction</h2>
+<p id="questionText">Let's begin. Can you introduce yourself?</p>
+
+<div class="timer" id="timer">Timer: 00:00</div>
+
+<button id="startRecordBtn" onclick="startRecording()">Start Recording</button>
+<button id="stopRecordBtn" onclick="stopRecording()" disabled>Stop Recording</button>
+
+<div id="statusMsg"></div>
+<button id="nextBtn" onclick="nextSection()" disabled>Next</button>
+</div>
+
+<div id="resultPanel" class="panel hidden">
+<h2>IELTS Speaking Result</h2>
+<div class="result-box">
+<div class="score" id="bandScore">Band: --</div>
+<div class="criteria" id="fluency"></div>
+<div class="criteria" id="lexical"></div>
+<div class="criteria" id="grammar"></div>
+<div class="criteria" id="pronunciation"></div>
+</div>
+<br>
+<button onclick="location.reload()">Retake Test</button>
+</div>
+
+</div>
+
+<footer>
+IELTS Simulation | Audio is temporarily processed and automatically deleted.
+</footer>
+
+<script>
+let mediaRecorder;
+let audioChunks = [];
+let currentPart = 1;
+let timerInterval;
+let totalSeconds = 0;
+
+const questions = {
+1:"Let's begin with some questions about you. Where are you from?",
+2:"Now I will give you a topic. You have 1 minute to prepare and then you must speak for 2 minutes.",
+3:"Now let's move to Part 3. I will ask you more general questions related to your topic."
+};
+
+function startTest(){
+document.getElementById("introPanel").classList.add("hidden");
+document.getElementById("testPanel").classList.remove("hidden");
+document.getElementById("sectionTitle").innerText="Speaking Part 1 – Introduction";
+document.getElementById("questionText").innerText=questions[1];
+startTimer();
+}
+
+function startTimer(){
+timerInterval = setInterval(()=>{
+totalSeconds++;
+document.getElementById("timer").innerText="Timer: " + formatTime(totalSeconds);
+},1000);
+}
+
+function formatTime(sec){
+let m=Math.floor(sec/60);
+let s=sec%60;
+return (m<10?"0"+m:m)+":"+(s<10?"0"+s:s);
+}
+
+async function startRecording(){
+let stream = await navigator.mediaDevices.getUserMedia({audio:true});
+mediaRecorder = new MediaRecorder(stream);
+
+audioChunks = [];
+
+mediaRecorder.ondataavailable = e => {
+audioChunks.push(e.data);
+};
+
+mediaRecorder.onstop = sendAudio;
+
+mediaRecorder.start();
+
+document.getElementById("statusMsg").innerHTML="<div class='success'>Recording...</div>";
+document.getElementById("startRecordBtn").disabled=true;
+document.getElementById("stopRecordBtn").disabled=false;
+}
+
+function stopRecording(){
+mediaRecorder.stop();
+document.getElementById("statusMsg").innerHTML="<div class='warning'>Processing audio...</div>";
+document.getElementById("stopRecordBtn").disabled=true;
+}
+
+async function sendAudio(){
+const blob = new Blob(audioChunks, {type:"audio/webm"});
+const formData = new FormData();
+formData.append("audio", blob);
+
+let res = await fetch("/api/speaking-score",{method:"POST",body:formData});
+let data = await res.json();
+
+document.getElementById("statusMsg").innerHTML="<div class='success'>Response saved!</div>";
+document.getElementById("nextBtn").disabled=false;
+
+sessionStorage.setItem("scoreData", JSON.stringify(data));
+}
+
+function nextSection(){
+currentPart++;
+
+if(currentPart===2){
+document.getElementById("sectionTitle").innerText="Speaking Part 2 – Cue Card";
+document.getElementById("questionText").innerText=questions[2];
+document.getElementById("startRecordBtn").disabled=false;
+document.getElementById("nextBtn").disabled=true;
+}
+
+else if(currentPart===3){
+document.getElementById("sectionTitle").innerText="Speaking Part 3 – Discussion";
+document.getElementById("questionText").innerText=questions[3];
+document.getElementById("startRecordBtn").disabled=false;
+document.getElementById("nextBtn").disabled=true;
+}
+
+else{
+showResult();
+}
+}
+
+function showResult(){
+clearInterval(timerInterval);
+document.getElementById("testPanel").classList.add("hidden");
+document.getElementById("resultPanel").classList.remove("hidden");
+
+let result = JSON.parse(sessionStorage.getItem("scoreData"));
+
+document.getElementById("bandScore").innerText="Band: "+result.band;
+document.getElementById("fluency").innerText="Fluency & Coherence: "+result.fluency;
+document.getElementById("lexical").innerText="Lexical Resource: "+result.lexical;
+document.getElementById("grammar").innerText="Grammar Range & Accuracy: "+result.grammar;
+document.getElementById("pronunciation").innerText="Pronunciation: "+result.pronunciation;
+}
+</script>
 
 </body>
 </html>
-
