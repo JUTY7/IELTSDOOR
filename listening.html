@@ -4,16 +4,117 @@
 <title>IELTS Listening - IELTS DOOR</title>
 
 <style>
-body{font-family:Arial;background:#f5f5f5;text-align:center;padding:20px;}
-h1{color:#0d6efd;}
-.box{background:white;width:900px;margin:auto;padding:20px;border-radius:15px;
-box-shadow:0 5px 15px rgba(0,0,0,0.3);text-align:left;}
+body{
+ font-family:Arial;
+ background:#eef2ff;
+ text-align:center;
+ padding:25px;
+ transition:0.3s;
+}
 
-button{background:#0d6efd;color:white;padding:10px 15px;border:none;border-radius:6px;margin:5px;cursor:pointer;}
+.dark{
+ background:#0b1220;
+ color:white;
+}
+
+h1{
+ color:#0b5ed7;
+}
+
+.dark h1{
+ color:#9ec5ff;
+}
+
+.box{
+ background:white;
+ width:95%;
+ max-width:950px;
+ margin:auto;
+ padding:25px;
+ border-radius:18px;
+ box-shadow:0 8px 20px rgba(0,0,0,0.25);
+ text-align:left;
+ transition:0.3s;
+}
+
+.dark .box{
+ background:#111c3a;
+ box-shadow:0 8px 20px rgba(255,255,255,0.1);
+}
+
+/* Exam Header */
+.exam-header{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ background:#002a6d;
+ color:white;
+ padding:15px 20px;
+ border-radius:12px;
+ margin-bottom:15px;
+ flex-wrap:wrap;
+}
+
+.exam-header h2{
+ margin:0;
+}
+
+#timer{
+ background:#0b6efd;
+ padding:8px 18px;
+ border-radius:30px;
+ font-size:17px;
+ font-weight:bold;
+}
+
+/* Audio Box */
+audio{
+ background:#eaf0ff;
+ border-radius:10px;
+ border:2px solid #b7c9ff;
+ padding:5px;
+ width:100%;
+}
+
+/* Question Box */
+.questionBox{
+ background:#f4f6ff;
+ border:1.5px solid #c7d3ff;
+ padding:12px;
+ border-radius:10px;
+ margin:8px 0;
+ transition:0.3s;
+}
+.dark .questionBox{
+ background:#1b2b52;
+ border-color:#4b6fdd;
+}
+
+button{
+ background:#0d6efd;
+ color:white;
+ padding:10px 18px;
+ border:none;
+ border-radius:30px;
+ margin:6px;
+ cursor:pointer;
+ font-size:15px;
+ font-weight:bold;
+}
 button:hover{background:#073a8f;}
+button:disabled{
+ background:gray;
+ cursor:not-allowed;
+}
 
-#timer{font-size:18px;font-weight:bold;color:#0d6efd;margin-bottom:10px;}
+.submit-btn{
+ background:#28a745;
+}
+.submit-btn:hover{
+ background:#1f7a33;
+}
 
+/* Question Circles */
 .circle{
  display:inline-block;
  width:35px;
@@ -31,13 +132,28 @@ button:hover{background:#073a8f;}
  background:#0d6efd;
  color:white;
 }
-
-.questionBox{
- background:#eef5ff;
- padding:10px;
- border-radius:8px;
- margin:8px 0;
+.circle.active{
+ border:3px solid red;
 }
+
+/* Toggle Dark Mode */
+#modeBtn{
+ background:black;
+}
+
+@media(max-width:600px){
+ .box{
+  padding:10px;
+ }
+ .exam-header{
+  flex-direction:column;
+  gap:10px;
+ }
+ h1{
+  font-size:20px;
+ }
+}
+
 </style>
 </head>
 
@@ -45,11 +161,16 @@ button:hover{background:#073a8f;}
 
 <h1>IELTS Listening Test</h1>
 
+<button id="modeBtn" onclick="toggleMode()">Toggle Dark Mode 🌙</button>
+
 <div class="box">
 
-<div id="timer">Time Left: 32:00</div>
+<div class="exam-header">
+ <h2>Listening Test — IELTS DOOR</h2>
+ <div id="timer">32:00</div>
+</div>
 
-<audio id="audioPlayer" controls style="width:100%;margin-bottom:15px;">
+<audio id="audioPlayer" controls>
  <source src="listening_full.mp3" type="audio/mpeg">
 </audio>
 
@@ -58,9 +179,9 @@ button:hover{background:#073a8f;}
 <div id="questions"></div>
 
 <div style="text-align:center;margin-top:10px;">
-<button onclick="prevPage()">Previous</button>
-<button onclick="nextPage()">Next</button>
-<button onclick="submitExam()">Submit</button>
+<button id="prevBtn" onclick="prevPage()">Previous</button>
+<button id="nextBtn" onclick="nextPage()">Next</button>
+<button id="submitBtn" class="submit-btn" onclick="submitExam()">Submit</button>
 </div>
 
 <div id="circles" style="text-align:center;margin-top:10px;"></div>
@@ -72,37 +193,53 @@ button:hover{background:#073a8f;}
 <script>
 
 // ================= SETTINGS =================
-let page = 1;
-let answers = new Array(40).fill(null);
+let page = parseInt(localStorage.getItem("page")) || 1;
+let answers = JSON.parse(localStorage.getItem("listeningAnswers")) || new Array(40).fill(null);
 
 let questions = [];
 for(let i=1;i<=40;i++){
  questions.push({
-   q:`Question ${i}`,
-   options:["A","B","C","D"],
-   answer:"A"
+  q:`Question ${i}`,
+  options:["A","B","C","D"],
+  answer:"A"
  });
 }
 
 
-// ================= TIMER =================
-let time = 32*60;
+// ================= TIMER WITH WARNING + AUTO SUBMIT =================
+let savedTime = localStorage.getItem("listeningTime");
+let time = savedTime ? parseInt(savedTime) : 32*60;
+
+let warned = false;
+
 let timer = setInterval(()=>{
  let m=Math.floor(time/60);
  let s=time%60;
  if(s<10) s="0"+s;
- document.getElementById("timer").innerHTML=`Time Left: ${m}:${s}`;
+
+ document.getElementById("timer").innerHTML=`${m}:${s}`;
+ localStorage.setItem("listeningTime",time);
+
  time--;
- if(time<0){
+
+ if(time === 60 && !warned){
+  warned = true;
+  alert("⚠️ Only 1 minute left! Please complete your answers.");
+ }
+
+ if(time < 0){
   clearInterval(timer);
-  alert("Time is over!");
+  alert("⏰ Time is over! Auto submitting!");
   submitExam();
  }
+
 },1000);
 
 
 // ================= RENDER PAGE =================
 function renderPage(){
+
+ localStorage.setItem("page",page);
 
  let start=(page-1)*10;
  let end=start+10;
@@ -137,11 +274,12 @@ function renderPage(){
 // ================= SAVE ANSWER =================
 function selectAns(i,val){
  answers[i]=val;
+ localStorage.setItem("listeningAnswers",JSON.stringify(answers));
  renderCircles();
 }
 
 
-// ================= 10 ROUND BUTTONS ONLY =================
+// ================= CIRCLES =================
 function renderCircles(){
  let div=document.getElementById("circles");
  div.innerHTML="";
@@ -153,6 +291,7 @@ function renderCircles(){
   let c=document.createElement("div");
   c.className="circle";
   if(answers[i]) c.classList.add("answered");
+  if(i>=start && i<end) c.classList.add("active");
   c.innerHTML=i+1;
   div.appendChild(c);
  }
@@ -195,8 +334,16 @@ function submitExam(){
  <p><b>Incorrect:</b> ${incorrect}</p>
  <p><b>Band Score:</b> ${band}</p>
  `;
+
  document.getElementById("circles").innerHTML="";
  document.getElementById("title").innerHTML="Test Completed";
+
+ document.getElementById("prevBtn").disabled = true;
+ document.getElementById("nextBtn").disabled = true;
+ document.getElementById("submitBtn").disabled = true;
+
+ localStorage.removeItem("listeningTime");
+ localStorage.removeItem("listeningAnswers");
 }
 
 
@@ -214,6 +361,19 @@ function getBand(c){
  if(c>=13) return 4.5;
  if(c>=10) return 4;
  return 0;
+}
+
+
+// ================= DARK MODE =================
+function toggleMode(){
+ document.body.classList.toggle("dark");
+ localStorage.setItem("darkMode",
+  document.body.classList.contains("dark")
+ );
+}
+
+if(localStorage.getItem("darkMode")==="true"){
+ document.body.classList.add("dark");
 }
 
 renderPage();
