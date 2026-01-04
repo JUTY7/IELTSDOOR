@@ -3,62 +3,145 @@
 <head>
 <title>Listening - IELTS DOOR</title>
 <style>
-body { font-family: Arial; background:#f5f5f5; text-align:center; padding:50px; }
-h1 { color:#0d6efd; font-size:40px; }
-.box { background:white; width:650px; margin:auto; padding:30px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:left; }
+body { font-family: Arial; background:#f5f5f5; text-align:center; padding:30px; }
+h1 { color:#0d6efd; font-size:36px; margin-bottom:10px;}
+.box { background:white; width:800px; margin:auto; padding:25px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:left; }
 button { background:#0d6efd; color:white; padding:12px 20px; border:none; border-radius:6px; font-size:16px; cursor:pointer; margin:10px; }
 button:hover { background:#0948a1; }
-label { display:block; margin:15px 0; font-size:16px; }
+label { display:block; margin:8px 0; font-size:16px; }
 #timer { font-size:18px; font-weight:bold; color:#0d6efd; margin-bottom:15px; }
+#sectionTitle { font-size:24px; color:#0d6efd; margin-bottom:10px;}
+#result { font-size:20px; font-weight:bold; margin-top:15px; color:#0d6efd; }
+audio { width:100%; margin-bottom:20px; }
 </style>
 </head>
 <body>
 
-<h1>Listening Section</h1>
+<h1>IELTS Listening - Full Test</h1>
 <div class="box">
-  <div id="timer">Time Left: 05:00</div>
-  <form id="listeningForm">
-    <p>1. Question placeholder?</p>
-    <label><input type="radio" name="q1" value="A"> Option A</label>
-    <label><input type="radio" name="q1" value="B"> Option B</label>
-    <label><input type="radio" name="q1" value="C"> Option C</label>
-
-    <p>2. Question placeholder?</p>
-    <label><input type="radio" name="q2" value="A"> Option A</label>
-    <label><input type="radio" name="q2" value="B"> Option B</label>
-    <label><input type="radio" name="q2" value="C"> Option C</label>
-
-    <button type="button" onclick="checkAnswers()">Submit Answers</button>
-  </form>
+  <div id="timer">Time Left: 32:00</div>
+  <div id="sectionTitle"></div>
+  <div id="questionContainer"></div>
+  <button id="nextBtn" onclick="nextSection()">Next Section</button>
   <p id="result"></p>
   <button onclick="window.location.href='index.html'">Back to Home</button>
 </div>
 
 <script>
-let totalTime = 300; // 5 minutes in seconds
-let timer = document.getElementById('timer');
-let countdown = setInterval(() => {
-  let minutes = Math.floor(totalTime/60);
-  let seconds = totalTime % 60;
-  if(seconds < 10) seconds = '0'+seconds;
-  timer.innerText = `Time Left: ${minutes}:${seconds}`;
-  totalTime--;
-  if(totalTime < 0){
-    clearInterval(countdown);
-    alert('Time is up!');
-    checkAnswers();
-  }
-}, 1000);
+// === CONFIGURATION ===
 
-function checkAnswers(){
-  let form = document.getElementById('listeningForm');
-  let score = 0;
-  if(form.q1.value === "B") score++;
-  if(form.q2.value === "C") score++;
-  document.getElementById('result').innerText = `Your Score: ${score}/2`;
+// 4 Sections, 10 questions each
+const sections = [
+  {title: "Section 1", audio:"audio1.mp3", questions: []},
+  {title: "Section 2", audio:"audio2.mp3", questions: []},
+  {title: "Section 3", audio:"audio3.mp3", questions: []},
+  {title: "Section 4", audio:"audio4.mp3", questions: []},
+];
+
+// Fill each section with 10 placeholder questions
+sections.forEach(section=>{
+  for(let i=1;i<=10;i++){
+    section.questions.push({
+      q: `Question placeholder ${i}`,
+      options:["A","B","C","D"],
+      answer:"A"
+    });
+  }
+});
+
+let currentSection = 0;
+
+// === TIMER ===
+let totalTime = 32*60;
+const timerEl = document.getElementById('timer');
+const countdown = setInterval(()=>{
+  const minutes = Math.floor(totalTime/60);
+  let seconds = totalTime%60;
+  if(seconds<10) seconds='0'+seconds;
+  timerEl.innerText = `Time Left: ${minutes}:${seconds}`;
+  totalTime--;
+  if(totalTime<0){
+    clearInterval(countdown);
+    alert("Time's up!");
+    submitExam();
+  }
+},1000);
+
+// === RENDER SECTION ===
+function renderSection(){
+  const section = sections[currentSection];
+  const container = document.getElementById('questionContainer');
+  const sectionTitle = document.getElementById('sectionTitle');
+  sectionTitle.innerText = section.title;
+
+  // Audio player
+  let html = `<audio controls>
+                <source src="${section.audio}" type="audio/mpeg">
+                Your browser does not support the audio element.
+              </audio>`;
+  // Questions
+  section.questions.forEach((q, idx)=>{
+    html += `<p>${q.q}</p>`;
+    q.options.forEach(opt=>{
+      html += `<label><input type="radio" name="sec${currentSection}_q${idx}" value="${opt}"> ${opt}</label>`;
+    });
+  });
+  container.innerHTML = html;
+}
+
+// === NEXT SECTION ===
+function nextSection(){
+  if(currentSection<sections.length-1){
+    currentSection++;
+    renderSection();
+  } else {
+    submitExam();
+  }
+}
+
+// === SUBMIT EXAM ===
+function submitExam(){
+  let totalScore = 0;
+  sections.forEach((section, sIdx)=>{
+    section.questions.forEach((q, qIdx)=>{
+      const selected = document.querySelector(`input[name=sec${sIdx}_q${qIdx}]:checked`);
+      if(selected && selected.value === q.answer) totalScore++;
+    });
+  });
+
+  const totalQuestions = sections.length * 10;
+  const percentage = (totalScore/totalQuestions*100).toFixed(2);
+
+  let band = calculateBand(percentage);
+
+  document.getElementById('questionContainer').innerHTML = `
+    <h2>🎯 Listening Result Dashboard</h2>
+    <p>Total Questions: ${totalQuestions}</p>
+    <p>Correct Answers: ${totalScore}</p>
+    <p>Percentage Score: ${percentage}%</p>
+    <p>Band Score: ${band}</p>
+  `;
+  document.getElementById('sectionTitle').innerText = "Test Completed";
+  document.getElementById('nextBtn').disabled = true;
   clearInterval(countdown);
 }
+
+// === BAND SCORE CALCULATOR ===
+function calculateBand(percentage){
+  if(percentage>=90) return 9;
+  if(percentage>=80) return 8.5;
+  if(percentage>=70) return 8;
+  if(percentage>=60) return 7;
+  if(percentage>=50) return 6;
+  if(percentage>=40) return 5;
+  if(percentage>=30) return 4;
+  return 3;
+}
+
+// === INITIAL RENDER ===
+renderSection();
 </script>
 
 </body>
 </html>
+
