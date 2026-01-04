@@ -4,162 +4,199 @@
 <title>IELTS Listening - IELTS DOOR</title>
 <style>
 body { font-family: Arial; background:#f5f5f5; padding:20px; text-align:center; }
-h1 { color:#0d6efd; font-size:36px; margin-bottom:15px; }
-.box { background:white; width:800px; margin:auto; padding:25px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:left; }
-button { background:#0d6efd; color:white; padding:10px 15px; border:none; border-radius:6px; cursor:pointer; margin:5px; }
-button:hover { background:#0948a1; }
-label { display:block; margin:5px 0; font-size:16px; }
-#timer { font-size:18px; font-weight:bold; color:#0d6efd; margin-bottom:15px; }
-#sectionTitle { font-size:24px; color:#0d6efd; margin-bottom:10px; }
-#questionContainer { margin-bottom:10px; }
-.qnumContainer { margin-top:15px; text-align:center; }
-.qnumBtn { display:inline-block; width:30px; height:30px; border-radius:50%; border:1px solid #0d6efd; margin:3px; cursor:pointer; background:white; color:#0d6efd; line-height:30px; font-weight:bold; }
-.qnumBtn.answered { background:#0d6efd; color:white; }
+h1 { color:#0d6efd; }
+.box { background:white; width:900px; margin:auto; padding:20px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:left; }
+
+button{background:#0d6efd;color:white;padding:10px 15px;border:none;border-radius:6px;margin:5px;cursor:pointer;}
+button:hover{background:#0a49b1;}
+
+#timer{font-size:18px;font-weight:bold;color:#0d6efd;margin-bottom:10px;}
+
+.pageButtons{margin-top:10px;text-align:center;}
+.pageBtn{display:inline-block;width:35px;height:35px;border-radius:50%;border:1px solid #0d6efd;margin:4px;cursor:pointer;
+line-height:35px;font-weight:bold;color:#0d6efd;background:white;}
+.pageBtn.answered{background:#0d6efd;color:white;}
+
+.questionBox{margin:10px 0;padding:10px;border-radius:8px;background:#eef5ff;}
 </style>
 </head>
+
 <body>
 
-<h1>IELTS Listening - Full Test</h1>
+<h1>IELTS Listening Test</h1>
+
 <div class="box">
-  <div id="timer">Time Left: 32:00</div>
 
-  <audio id="audioPlayer" controls style="width:100%; margin-bottom:15px;">
-    <source src="listening_full.mp3" type="audio/mpeg">
-    Your browser does not support the audio element.
-  </audio>
+<div id="timer">Time Left: 32:00</div>
 
-  <div id="sectionTitle"></div>
-  <div id="questionContainer"></div>
-  <div class="qnumContainer" id="qnumContainer"></div>
+<audio id="audioPlayer" controls style="width:100%; margin-bottom:15px;">
+  <source src="listening_full.mp3" type="audio/mpeg">
+</audio>
 
-  <div style="text-align:center; margin-top:15px;">
-    <button onclick="prevQuestion()">Previous</button>
-    <button onclick="nextQuestion()">Next</button>
-    <button onclick="prevSection()">Previous Section</button>
-    <button onclick="nextSection()">Next Section</button>
-    <button onclick="submitExam()">Submit Exam</button>
-  </div>
+<h2 id="title"></h2>
 
-  <p id="result"></p>
+<div id="questions"></div>
+
+<div class="pageButtons">
+<button onclick="prevPage()">Previous</button>
+<button onclick="nextPage()">Next</button>
+<button onclick="submitExam()">Submit</button>
+</div>
+
+<div id="numbers" class="pageButtons"></div>
+
+<p id="result"></p>
+
 </div>
 
 <script>
-// ===== CONFIGURATION =====
-const totalSections = 4;
-const questionsPerSection = 10;
 
-// Create 4 sections with 10 questions each
-let sections = [];
-for(let s=0; s<totalSections; s++){
-  let qArr = [];
-  for(let i=1; i<=questionsPerSection; i++){
-    qArr.push({q:`Section ${s+1} - Question ${i}`, options:["A","B","C","D"], answer:"A"});
-  }
-  sections.push({questions:qArr});
+// ===== DATA =====
+let totalQuestions = 40;
+let questionsPerPage = 10;
+let currentPage = 1;
+
+let answers = new Array(40).fill(null);
+
+// create dummy questions
+let questions = [];
+for(let i=1;i<=40;i++){
+  questions.push({
+    q:`Question ${i}`,
+    options:["A","B","C","D"],
+    answer:"A"
+  });
 }
-
-// ===== TRACKERS =====
-let currentSection = 0;
-let currentQuestion = 0;
-let answers = sections.map(sec => Array(sec.questions.length).fill(null));
 
 // ===== TIMER =====
-let totalTime = 32*60;
-const timerEl = document.getElementById('timer');
-const countdown = setInterval(()=>{
-  let minutes = Math.floor(totalTime/60);
-  let seconds = totalTime % 60;
-  if(seconds<10) seconds='0'+seconds;
-  timerEl.innerText = `Time Left: ${minutes}:${seconds}`;
-  totalTime--;
-  if(totalTime<0){
-    clearInterval(countdown);
-    alert("Time's up!");
-    submitExam();
-  }
+let time = 32*60;
+let t = setInterval(()=>{
+ let m = Math.floor(time/60);
+ let s = time%60;
+ if(s<10) s="0"+s;
+ document.getElementById("timer").innerHTML = `Time Left: ${m}:${s}`;
+ time--;
+ if(time<0){
+   clearInterval(t);
+   alert("Time's up!");
+   submitExam();
+ }
 },1000);
 
-// ===== RENDER QUESTION =====
-function renderQuestion(){
-  const section = sections[currentSection];
-  const q = section.questions[currentQuestion];
 
-  document.getElementById('sectionTitle').innerText = `Section ${currentSection+1} - Question ${currentQuestion+1}`;
+// ===== RENDER PAGE =====
+function renderPage(){
+ let start = (currentPage-1)*10;
+ let end = start+10;
 
-  let html = `<p>${q.q}</p>`;
-  q.options.forEach(opt=>{
-    html += `<label><input type="radio" name="answer" value="${opt}" ${answers[currentSection][currentQuestion]===opt?"checked":""} onchange="selectAnswer(this)"> ${opt}</label>`;
+ document.getElementById("title").innerText =
+   `Listening Section — Questions ${start+1} to ${end}`;
+
+ let html = "";
+
+ for(let i=start;i<end;i++){
+  html += `<div class="questionBox">
+  <b>${questions[i].q}</b><br>`;
+
+  questions[i].options.forEach(opt=>{
+      html+=`<label>
+      <input type="radio" name="q${i}"
+      value="${opt}"
+      ${answers[i]===opt?"checked":""}
+      onchange="selectAnswer(${i},'${opt}')"> ${opt}</label><br>`;
   });
-  document.getElementById('questionContainer').innerHTML = html;
 
-  renderQNumButtons();
+  html+=`</div>`;
+ }
+
+ document.getElementById("questions").innerHTML = html;
+ renderButtons();
 }
+
 
 // ===== SELECT ANSWER =====
-function selectAnswer(input){
-  answers[currentSection][currentQuestion] = input.value;
-  renderQNumButtons();
+function selectAnswer(i,opt){
+ answers[i]=opt;
+ renderButtons();
 }
 
-// ===== QUESTION NUMBER BUTTONS =====
-function renderQNumButtons(){
-  const container = document.getElementById('qnumContainer');
-  container.innerHTML = '';
-  const qArr = sections[currentSection].questions;
-  for(let i=0; i<qArr.length; i++){
-    const btn = document.createElement('div');
-    btn.className = 'qnumBtn';
-    if(answers[currentSection][i]) btn.classList.add('answered');
-    btn.innerText = i+1;
-    btn.onclick = ()=>{ currentQuestion=i; renderQuestion(); };
-    container.appendChild(btn);
+
+// ===== PAGE BUTTON INDICATORS =====
+function renderButtons(){
+ let div = document.getElementById("numbers");
+ div.innerHTML="";
+
+ for(let i=0;i<40;i++){
+  let btn = document.createElement("div");
+  btn.className="pageBtn";
+  
+  if(answers[i]) btn.classList.add("answered");
+
+  btn.innerHTML=i+1;
+  btn.onclick=function(){
+     currentPage = Math.floor(i/10)+1;
+     renderPage();
   }
+  div.appendChild(btn);
+ }
 }
+
 
 // ===== NAVIGATION =====
-function nextQuestion(){ if(currentQuestion<questionsPerSection-1){ currentQuestion++; renderQuestion(); } }
-function prevQuestion(){ if(currentQuestion>0){ currentQuestion--; renderQuestion(); } }
-function nextSection(){ if(currentSection<totalSections-1){ currentSection++; currentQuestion=0; renderQuestion(); } }
-function prevSection(){ if(currentSection>0){ currentSection--; currentQuestion=0; renderQuestion(); } }
+function nextPage(){
+ if(currentPage<4){
+  currentPage++;
+  renderPage();
+ }
+}
+
+function prevPage(){
+ if(currentPage>1){
+  currentPage--;
+  renderPage();
+ }
+}
+
 
 // ===== SUBMIT =====
 function submitExam(){
-  clearInterval(countdown);
-  let totalScore=0;
-  sections.forEach((sec,sIdx)=>{
-    sec.questions.forEach((q,qIdx)=>{
-      if(answers[sIdx][qIdx]===q.answer) totalScore++;
-    });
-  });
-  const totalQuestions = totalSections*questionsPerSection;
-  const percentage = (totalScore/totalQuestions*100).toFixed(2);
-  const band = calculateBand(percentage);
 
-  document.getElementById('questionContainer').innerHTML = `<h2>🎯 Listening Result Dashboard</h2>
-    <p>Total Questions: ${totalQuestions}</p>
-    <p>Correct Answers: ${totalScore}</p>
-    <p>Percentage Score: ${percentage}%</p>
-    <p>Band Score: ${band}</p>`;
-  document.getElementById('sectionTitle').innerText="Test Completed";
-  document.getElementById('submitBtn')?.setAttribute('disabled', true);
+ clearInterval(t);
+
+ let score=0;
+ for(let i=0;i<40;i++){
+  if(answers[i]===questions[i].answer) score++;
+ }
+
+ let percent = (score/40)*100;
+ let band = getBand(percent);
+
+ document.getElementById("questions").innerHTML = `
+ <h2>Result</h2>
+ <p>Total Questions: 40</p>
+ <p>Correct: ${score}</p>
+ <p>Score: ${percent.toFixed(2)}%</p>
+ <p>Band: ${band}</p>
+ `;
+ document.getElementById("numbers").innerHTML="";
+ document.getElementById("title").innerHTML="Test Completed";
 }
 
-// ===== CALCULATE BAND =====
-function calculateBand(p){
-  p=parseFloat(p);
-  if(p>=90) return 9;
-  if(p>=80) return 8.5;
-  if(p>=70) return 8;
-  if(p>=60) return 7;
-  if(p>=50) return 6;
-  if(p>=40) return 5;
-  if(p>=30) return 4;
-  return 3;
+
+// ===== BAND CALC =====
+function getBand(p){
+ if(p>=90) return 9;
+ if(p>=80) return 8.5;
+ if(p>=70) return 8;
+ if(p>=60) return 7;
+ if(p>=50) return 6;
+ if(p>=40) return 5;
+ return 4;
 }
 
-// INITIAL RENDER
-renderQuestion();
+renderPage();
 </script>
 
 </body>
 </html>
+
