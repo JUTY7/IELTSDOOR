@@ -12,12 +12,31 @@ button:hover{background:#0a49b1;}
 
 #timer{font-size:18px;font-weight:bold;color:#0d6efd;margin-bottom:10px;}
 
-.pageButtons{margin-top:10px;text-align:center;}
-.pageBtn{display:inline-block;width:35px;height:35px;border-radius:50%;border:1px solid #0d6efd;margin:4px;cursor:pointer;
-line-height:35px;font-weight:bold;color:#0d6efd;background:white;}
-.pageBtn.answered{background:#0d6efd;color:white;}
+.pageButtons{text-align:center;margin-top:10px;}
 
-.questionBox{margin:10px 0;padding:10px;border-radius:8px;background:#eef5ff;}
+.circle{
+ display:inline-block;
+ width:35px;height:35px;
+ border-radius:50%;
+ border:2px solid #0d6efd;
+ margin:4px;
+ line-height:35px;
+ font-weight:bold;
+ cursor:pointer;
+ color:#0d6efd;
+ background:white;
+}
+.circle.answered{
+ background:#0d6efd;
+ color:white;
+}
+
+.questionBox{
+ margin:10px 0;
+ padding:10px;
+ border-radius:8px;
+ background:#eef5ff;
+}
 </style>
 </head>
 
@@ -51,24 +70,25 @@ line-height:35px;font-weight:bold;color:#0d6efd;background:white;}
 
 <script>
 
-// ===== DATA =====
+// === SETTINGS ===
 let totalQuestions = 40;
-let questionsPerPage = 10;
-let currentPage = 1;
+let perPage = 10;
+let page = 1;
 
 let answers = new Array(40).fill(null);
 
-// create dummy questions
+// Dummy questions
 let questions = [];
 for(let i=1;i<=40;i++){
-  questions.push({
-    q:`Question ${i}`,
-    options:["A","B","C","D"],
-    answer:"A"
-  });
+ questions.push({
+  q:`Question ${i}`,
+  options:["A","B","C","D"],
+  answer:"A"
+ });
 }
 
-// ===== TIMER =====
+
+// === TIMER ===
 let time = 32*60;
 let t = setInterval(()=>{
  let m = Math.floor(time/60);
@@ -84,114 +104,120 @@ let t = setInterval(()=>{
 },1000);
 
 
-// ===== RENDER PAGE =====
+// === RENDER PAGE ===
 function renderPage(){
- let start = (currentPage-1)*10;
+
+ let start = (page-1)*10;
  let end = start+10;
 
  document.getElementById("title").innerText =
-   `Listening Section — Questions ${start+1} to ${end}`;
+ `Listening — Questions ${start+1} to ${end}`;
 
- let html = "";
+ let html="";
 
  for(let i=start;i<end;i++){
-  html += `<div class="questionBox">
-  <b>${questions[i].q}</b><br>`;
-
-  questions[i].options.forEach(opt=>{
-      html+=`<label>
-      <input type="radio" name="q${i}"
-      value="${opt}"
-      ${answers[i]===opt?"checked":""}
-      onchange="selectAnswer(${i},'${opt}')"> ${opt}</label><br>`;
-  });
-
-  html+=`</div>`;
+  html += `
+  <div class="questionBox">
+  <b>${questions[i].q}</b><br>
+  ${questions[i].options.map(opt=>`
+   <label>
+   <input type="radio" 
+    name="q${i}"
+    value="${opt}"
+    ${answers[i]===opt?"checked":""}
+    onchange="setAns(${i},'${opt}')">
+   ${opt}
+   </label><br>
+  `).join("")}
+  </div>`;
  }
 
  document.getElementById("questions").innerHTML = html;
- renderButtons();
+ renderCircles();
 }
 
 
-// ===== SELECT ANSWER =====
-function selectAnswer(i,opt){
- answers[i]=opt;
- renderButtons();
+// === SAVE ANSWER ===
+function setAns(i,val){
+ answers[i]=val;
+ renderCircles();
 }
 
 
-// ===== PAGE BUTTON INDICATORS =====
-function renderButtons(){
+// === ROUND BUTTONS (ONLY 10 PER PAGE) ===
+function renderCircles(){
  let div = document.getElementById("numbers");
  div.innerHTML="";
 
- for(let i=0;i<40;i++){
-  let btn = document.createElement("div");
-  btn.className="pageBtn";
-  
-  if(answers[i]) btn.classList.add("answered");
+ let start = (page-1)*10;
+ let end = start+10;
 
-  btn.innerHTML=i+1;
-  btn.onclick=function(){
-     currentPage = Math.floor(i/10)+1;
-     renderPage();
-  }
-  div.appendChild(btn);
+ for(let i=start;i<end;i++){
+  let c = document.createElement("div");
+  c.className="circle";
+  if(answers[i]) c.classList.add("answered");
+  c.innerHTML = (i+1);
+  c.onclick = ()=>{};
+  div.appendChild(c);
  }
 }
 
 
-// ===== NAVIGATION =====
+// === NAVIGATION ===
 function nextPage(){
- if(currentPage<4){
-  currentPage++;
+ if(page<4){
+  page++;
   renderPage();
  }
 }
 
 function prevPage(){
- if(currentPage>1){
-  currentPage--;
+ if(page>1){
+  page--;
   renderPage();
  }
 }
 
 
-// ===== SUBMIT =====
+// === SUBMIT ===
 function submitExam(){
-
  clearInterval(t);
 
- let score=0;
- for(let i=0;i<40;i++){
-  if(answers[i]===questions[i].answer) score++;
- }
+ let correct=0;
+ answers.forEach((a,i)=>{
+  if(a===questions[i].answer) correct++;
+ });
 
- let percent = (score/40)*100;
- let band = getBand(percent);
+ let incorrect = 40-correct;
+ let band = getBand(correct);
 
  document.getElementById("questions").innerHTML = `
  <h2>Result</h2>
- <p>Total Questions: 40</p>
- <p>Correct: ${score}</p>
- <p>Score: ${percent.toFixed(2)}%</p>
- <p>Band: ${band}</p>
+ <p><b>Total Questions:</b> 40</p>
+ <p><b>Correct:</b> ${correct}</p>
+ <p><b>Incorrect:</b> ${incorrect}</p>
+ <p><b>Band Score:</b> ${band}</p>
  `;
+
  document.getElementById("numbers").innerHTML="";
  document.getElementById("title").innerHTML="Test Completed";
 }
 
 
-// ===== BAND CALC =====
-function getBand(p){
- if(p>=90) return 9;
- if(p>=80) return 8.5;
- if(p>=70) return 8;
- if(p>=60) return 7;
- if(p>=50) return 6;
- if(p>=40) return 5;
- return 4;
+// === BAND SYSTEM (0–9) ===
+function getBand(correct){
+ if(correct>=39) return 9;
+ if(correct>=37) return 8.5;
+ if(correct>=35) return 8;
+ if(correct>=32) return 7.5;
+ if(correct>=30) return 7;
+ if(correct>=26) return 6.5;
+ if(correct>=23) return 6;
+ if(correct>=18) return 5.5;
+ if(correct>=16) return 5;
+ if(correct>=13) return 4.5;
+ if(correct>=10) return 4;
+ return 0;
 }
 
 renderPage();
@@ -199,4 +225,3 @@ renderPage();
 
 </body>
 </html>
-
