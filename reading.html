@@ -2,133 +2,405 @@
 <html>
 <head>
 <title>IELTS Reading - IELTS DOOR</title>
+
 <style>
-body { font-family: Arial; background:#f5f5f5; margin:0; padding:0; }
-h1 { color:#0d6efd; text-align:center; padding:20px 0; }
-#timer { text-align:center; font-size:20px; font-weight:bold; color:#0d6efd; margin-bottom:10px; }
-.container { display:flex; height:70vh; margin:20px; background:white; border-radius:10px; box-shadow:0 5px 15px rgba(0,0,0,0.3); overflow:hidden; }
-.passage, .questions { padding:20px; overflow-y:auto; }
-.passage { background:#f0f8ff; width:50%; resize:horizontal; min-width:200px; max-width:80%; }
-.questions { width:50%; resize:horizontal; min-width:200px; max-width:80%; border-left:2px solid #0d6efd; }
-button { background:#0d6efd; color:white; padding:8px 12px; border:none; border-radius:5px; cursor:pointer; margin:3px; }
-button:hover { background:#0948a1; }
-.qnumContainer { text-align:center; margin-top:10px; }
-.qnumBtn { display:inline-block; width:30px; height:30px; border-radius:50%; border:1px solid #0d6efd; margin:3px; cursor:pointer; background:white; color:#0d6efd; line-height:30px; font-weight:bold; }
-.qnumBtn.answered { background:#0d6efd; color:white; }
-#navButtons { text-align:center; margin:15px 0; }
-#result { text-align:center; font-size:18px; color:#0d6efd; font-weight:bold; }
-textarea { width:95%; margin-bottom:8px; font-size:16px; }
+
+body{
+ font-family:Arial;
+ background:#eef2ff;
+ text-align:center;
+ padding:20px;
+}
+
+.dark{
+ background:#0b1220;
+ color:white;
+}
+
+h1{color:#0b5ed7;}
+.dark h1{color:#9ec5ff;}
+
+.box{
+ background:white;
+ width:95%;
+ max-width:1100px;
+ margin:auto;
+ padding:15px;
+ border-radius:18px;
+ box-shadow:0 8px 20px rgba(0,0,0,0.25);
+}
+
+.dark .box{
+ background:#111c3a;
+}
+
+/* HEADER */
+.exam-header{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ background:#002a6d;
+ color:white;
+ padding:12px 18px;
+ border-radius:12px;
+ margin-bottom:15px;
+ flex-wrap:wrap;
+}
+
+#timer{
+ background:#0b6efd;
+ padding:8px 15px;
+ border-radius:30px;
+ font-size:17px;
+ font-weight:bold;
+}
+
+/* LAYOUT */
+.container{
+ display:flex;
+ gap:10px;
+ height:550px;
+}
+
+.panel{
+ background:#f4f6ff;
+ border:1.5px solid #c7d3ff;
+ border-radius:10px;
+ padding:10px;
+ overflow-y:auto;
+ width:50%;
+}
+
+.dark .panel{
+ background:#1b2b52;
+ border-color:#4b6fdd;
+}
+
+/* RESIZE BAR */
+.resize{
+ width:6px;
+ background:#0b6efd;
+ cursor:col-resize;
+ border-radius:20px;
+}
+
+/* QUESTIONS */
+.questionBox{
+ background:#ffffff;
+ border:1.5px solid #c7d3ff;
+ padding:10px;
+ border-radius:10px;
+ margin:8px 0;
+}
+.dark .questionBox{
+ background:#1b2b52;
+ border-color:#4b6fdd;
+}
+
+button{
+ background:#0d6efd;
+ color:white;
+ padding:10px 18px;
+ border:none;
+ border-radius:30px;
+ margin:6px;
+ cursor:pointer;
+ font-size:15px;
+ font-weight:bold;
+}
+button:hover{background:#073a8f;}
+button:disabled{
+ background:gray;
+ cursor:not-allowed;
+}
+
+.submit-btn{background:#28a745;}
+.submit-btn:hover{background:#1f7a33;}
+
+/* Question circles */
+.circle{
+ display:inline-block;
+ width:35px;
+ height:35px;
+ border-radius:50%;
+ border:2px solid #0d6efd;
+ margin:4px;
+ color:#0d6efd;
+ font-weight:bold;
+ line-height:35px;
+ cursor:pointer;
+ background:white;
+}
+.circle.answered{
+ background:#0d6efd;
+ color:white;
+}
+
+#modeBtn{background:black;}
+
+@media(max-width:700px){
+ .container{
+  flex-direction:column;
+  height:auto;
+ }
+ .panel{
+  width:100%;
+  height:300px;
+ }
+ .resize{display:none;}
+}
+
 </style>
 </head>
+
 <body>
 
-<h1>IELTS Reading Section</h1>
-<div id="timer">Time Left: 60:00</div>
+<h1>IELTS Reading Test</h1>
+
+<button id="modeBtn" onclick="toggleMode()">Toggle Dark Mode 🌙</button>
+
+<div class="box">
+
+<div class="exam-header">
+ <h2 id="title">Reading Passage 1</h2>
+ <div id="timer">60:00</div>
+</div>
 
 <div class="container">
-  <div class="passage" id="passageContainer"></div>
-  <div class="questions" id="questionsContainer"></div>
+
+<div class="panel" id="passage">
+<h3>Passage Text Goes Here</h3>
+<p>You will later replace this with your real IELTS passage.</p>
 </div>
 
-<div class="qnumContainer" id="qnumContainer"></div>
+<div class="resize" id="drag"></div>
 
-<div id="navButtons">
-  <button onclick="prevPassage()">Previous Passage</button>
-  <button onclick="nextPassage()">Next Passage</button>
-  <button onclick="submitReading()">Submit Exam</button>
+<div class="panel">
+<div id="questions"></div>
 </div>
+
+</div>
+
+<div style="margin-top:10px;">
+<button onclick="prevPassage()">Previous</button>
+<button onclick="nextPassage()">Next</button>
+<button class="submit-btn" onclick="submitExam()">Submit</button>
+</div>
+
+<div id="circles"></div>
 
 <p id="result"></p>
 
+</div>
+
 <script>
-// === CONFIGURATION ===
-const passages = [
-  { text: "Passage 1 text goes here...", questions: 13 },
-  { text: "Passage 2 text goes here...", questions: 13 },
-  { text: "Passage 3 text goes here...", questions: 14 }
-];
 
-let currentPassage = 0;
-let answers = passages.map(p=>Array(p.questions).fill(null));
+// ========== SETTINGS ==========
+let passage = parseInt(localStorage.getItem("readingPassage")) || 1;
+let answers = JSON.parse(localStorage.getItem("readingAnswers")) || new Array(40).fill(null);
 
-// === TIMER ===
-let totalTime = 60*60; // 60 minutes
-const timerEl = document.getElementById('timer');
-const countdown = setInterval(()=>{
-  let minutes = Math.floor(totalTime/60);
-  let seconds = totalTime % 60;
-  if(seconds<10) seconds='0'+seconds;
-  timerEl.innerText = `Time Left: ${minutes}:${seconds}`;
-  totalTime--;
-  if(totalTime<0){
-    clearInterval(countdown);
-    alert("Time's up!");
-    submitReading();
-  }
+// Question Distribution
+const passageCount = {
+ 1:13,
+ 2:13,
+ 3:14
+};
+
+let questions = [];
+for(let i=1;i<=40;i++){
+ questions.push({
+  q:`Question ${i}`,
+  options:["A","B","C","D"],
+  answer:"A"
+ });
+}
+
+
+// ========== TIMER WITH WARNING & AUTO SUBMIT ==========
+let savedTime = localStorage.getItem("readingTime");
+let time = savedTime ? parseInt(savedTime) : 60*60;
+let warned=false;
+
+let timer=setInterval(()=>{
+ let m=Math.floor(time/60);
+ let s=time%60;
+ if(s<10) s="0"+s;
+ document.getElementById("timer").innerHTML=`${m}:${s}`;
+ localStorage.setItem("readingTime",time);
+ time--;
+
+ if(time===60 && !warned){
+  warned=true;
+  alert("⚠️ Only 1 minute left! Hurry up!");
+ }
+
+ if(time<0){
+  clearInterval(timer);
+  alert("⏰ Time over! Auto submitting");
+  submitExam();
+ }
+
 },1000);
 
-// === RENDER PASSAGE & QUESTIONS ===
-function renderPassage(){
-  const passageEl = document.getElementById('passageContainer');
-  const questionsEl = document.getElementById('questionsContainer');
-  const qnumContainer = document.getElementById('qnumContainer');
-  
-  passageEl.innerText = passages[currentPassage].text;
-  
-  let qHtml = '';
-  for(let i=0;i<passages[currentPassage].questions;i++){
-    qHtml += `<p>Question ${i+1}</p>`;
-    ['A','B','C','D'].forEach(opt=>{
-      qHtml += `<label><input type="radio" name="q${i}" value="${opt}" ${answers[currentPassage][i]===opt?"checked":""} onchange="selectAnswer(${i}, this)"> ${opt}</label>`;
-    });
+
+// ========== RENDER ==========
+function render(){
+
+ localStorage.setItem("readingPassage",passage);
+
+ let startIndex = passage===1?0 : passage===2?13:26;
+ let total = passageCount[passage];
+
+ document.getElementById("title").innerHTML=
+ `Reading Passage ${passage} — Questions ${startIndex+1} to ${startIndex+total}`;
+
+ renderQuestions(startIndex,total);
+ renderCircles(startIndex,total);
+}
+
+
+// ========== QUESTIONS ==========
+function renderQuestions(start,total){
+
+ let html="";
+ for(let i=start;i<start+total;i++){
+  html+=`
+  <div class="questionBox">
+   <b>${questions[i].q}</b><br>
+   ${questions[i].options.map(opt=>`
+    <label>
+     <input type="radio"
+     name="q${i}"
+     value="${opt}"
+     ${answers[i]===opt?"checked":""}
+     onchange="saveAns(${i},'${opt}')">
+     ${opt}
+    </label><br>
+   `).join("")}
+  </div>
+  `;
+ }
+
+ document.getElementById("questions").innerHTML=html;
+}
+
+function saveAns(i,val){
+ answers[i]=val;
+ localStorage.setItem("readingAnswers",JSON.stringify(answers));
+ render();
+}
+
+
+// ========== CIRCLES ==========
+function renderCircles(start,total){
+
+ let div=document.getElementById("circles");
+ div.innerHTML="";
+
+ for(let i=start;i<start+total;i++){
+  let c=document.createElement("div");
+  c.className="circle";
+  c.innerHTML=i+1;
+  if(answers[i]) c.classList.add("answered");
+  div.appendChild(c);
+ }
+}
+
+
+// ========== NAVIGATION ==========
+function nextPassage(){
+ if(passage<3){
+  passage++;
+  render();
+ }
+}
+
+function prevPassage(){
+ if(passage>1){
+  passage--;
+  render();
+ }
+}
+
+
+// ========== SUBMIT ==========
+function submitExam(){
+
+ clearInterval(timer);
+
+ let correct=0;
+ answers.forEach((a,i)=>{
+  if(a===questions[i].answer) correct++;
+ });
+
+ let incorrect=40-correct;
+ let band=getBand(correct);
+
+ document.getElementById("questions").innerHTML=`
+ <h2>Result</h2>
+ <p><b>Total Questions:</b> 40</p>
+ <p><b>Correct:</b> ${correct}</p>
+ <p><b>Incorrect:</b> ${incorrect}</p>
+ <p><b>Band Score:</b> ${band}</p>
+ `;
+
+ document.getElementById("circles").innerHTML="";
+ document.getElementById("title").innerHTML="Reading Completed";
+
+ localStorage.removeItem("readingTime");
+ localStorage.removeItem("readingAnswers");
+}
+
+
+// ========== BAND SCALE ==========
+function getBand(c){
+ if(c>=39) return 9;
+ if(c>=37) return 8.5;
+ if(c>=35) return 8;
+ if(c>=33) return 7.5;
+ if(c>=30) return 7;
+ if(c>=27) return 6.5;
+ if(c>=23) return 6;
+ if(c>=19) return 5.5;
+ if(c>=15) return 5;
+ if(c>=12) return 4.5;
+ return 0;
+}
+
+
+// ========== RESIZE PANEL ==========
+let drag=document.getElementById("drag");
+let left=document.getElementById("passage");
+let right=document.querySelectorAll(".panel")[1];
+
+drag.onmousedown=function(e){
+ document.onmousemove=function(e){
+  let percent = (e.clientX / window.innerWidth)*100;
+  if(percent>20 && percent<80){
+   left.style.width=percent+"%";
+   right.style.width=(95-percent)+"%";
   }
-  questionsEl.innerHTML = qHtml;
-  
-  // Question number buttons
-  qnumContainer.innerHTML = '';
-  for(let i=0;i<passages[currentPassage].questions;i++){
-    const btn = document.createElement('div');
-    btn.className = 'qnumBtn';
-    if(answers[currentPassage][i]) btn.classList.add('answered');
-    btn.innerText = i+1;
-    btn.onclick = ()=>{ scrollToQuestion(i); };
-    qnumContainer.appendChild(btn);
-  }
+ }
+ document.onmouseup=function(){
+  document.onmousemove=null;
+ }
 }
 
-// === SELECT ANSWER ===
-function selectAnswer(index,input){
-  answers[currentPassage][index] = input.value;
-  renderPassage();
+
+// ========== DARK MODE ==========
+function toggleMode(){
+ document.body.classList.toggle("dark");
+ localStorage.setItem("readingDark",
+ document.body.classList.contains("dark"));
 }
 
-// === SCROLL TO QUESTION ===
-function scrollToQuestion(index){
-  const questionsEl = document.getElementById('questionsContainer');
-  const questionLabel = questionsEl.querySelectorAll('p')[index*2];
-  questionLabel.scrollIntoView({behavior:'smooth', block:'start'});
+if(localStorage.getItem("readingDark")==="true"){
+ document.body.classList.add("dark");
 }
 
-// === NAVIGATION ===
-function nextPassage(){ if(currentPassage<passages.length-1){currentPassage++; renderPassage();} }
-function prevPassage(){ if(currentPassage>0){currentPassage--; renderPassage();} }
+render();
 
-// === SUBMIT EXAM ===
-function submitReading(){
-  clearInterval(countdown);
-  let totalQuestions=0;
-  let answeredCount=0;
-  answers.forEach(pArr=>{
-    totalQuestions+=pArr.length;
-    answeredCount+=pArr.filter(a=>a!==null).length;
-  });
-  document.getElementById('result').innerText = `You answered ${answeredCount} out of ${totalQuestions} questions`;
-}
-
-// INITIAL RENDER
-renderPassage();
 </script>
 
 </body>
 </html>
-
