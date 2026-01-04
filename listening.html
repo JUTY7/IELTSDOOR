@@ -2,28 +2,29 @@
 <html>
 <head>
 <title>IELTS Listening - IELTS DOOR</title>
+
 <style>
-body { font-family: Arial; background:#f5f5f5; padding:20px; text-align:center; }
-h1 { color:#0d6efd; }
-.box { background:white; width:900px; margin:auto; padding:20px; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.3); text-align:left; }
+body{font-family:Arial;background:#f5f5f5;text-align:center;padding:20px;}
+h1{color:#0d6efd;}
+.box{background:white;width:900px;margin:auto;padding:20px;border-radius:15px;
+box-shadow:0 5px 15px rgba(0,0,0,0.3);text-align:left;}
 
 button{background:#0d6efd;color:white;padding:10px 15px;border:none;border-radius:6px;margin:5px;cursor:pointer;}
-button:hover{background:#0a49b1;}
+button:hover{background:#073a8f;}
 
 #timer{font-size:18px;font-weight:bold;color:#0d6efd;margin-bottom:10px;}
 
-.pageButtons{text-align:center;margin-top:10px;}
-
 .circle{
  display:inline-block;
- width:35px;height:35px;
+ width:35px;
+ height:35px;
  border-radius:50%;
  border:2px solid #0d6efd;
  margin:4px;
- line-height:35px;
- font-weight:bold;
- cursor:pointer;
  color:#0d6efd;
+ font-weight:bold;
+ line-height:35px;
+ cursor:pointer;
  background:white;
 }
 .circle.answered{
@@ -32,10 +33,10 @@ button:hover{background:#0a49b1;}
 }
 
 .questionBox{
- margin:10px 0;
+ background:#eef5ff;
  padding:10px;
  border-radius:8px;
- background:#eef5ff;
+ margin:8px 0;
 }
 </style>
 </head>
@@ -48,21 +49,21 @@ button:hover{background:#0a49b1;}
 
 <div id="timer">Time Left: 32:00</div>
 
-<audio id="audioPlayer" controls style="width:100%; margin-bottom:15px;">
-  <source src="listening_full.mp3" type="audio/mpeg">
+<audio id="audioPlayer" controls style="width:100%;margin-bottom:15px;">
+ <source src="listening_full.mp3" type="audio/mpeg">
 </audio>
 
 <h2 id="title"></h2>
 
 <div id="questions"></div>
 
-<div class="pageButtons">
+<div style="text-align:center;margin-top:10px;">
 <button onclick="prevPage()">Previous</button>
 <button onclick="nextPage()">Next</button>
 <button onclick="submitExam()">Submit</button>
 </div>
 
-<div id="numbers" class="pageButtons"></div>
+<div id="circles" style="text-align:center;margin-top:10px;"></div>
 
 <p id="result"></p>
 
@@ -70,47 +71,43 @@ button:hover{background:#0a49b1;}
 
 <script>
 
-// === SETTINGS ===
-let totalQuestions = 40;
-let perPage = 10;
+// ================= SETTINGS =================
 let page = 1;
-
 let answers = new Array(40).fill(null);
 
-// Dummy questions
 let questions = [];
 for(let i=1;i<=40;i++){
  questions.push({
-  q:`Question ${i}`,
-  options:["A","B","C","D"],
-  answer:"A"
+   q:`Question ${i}`,
+   options:["A","B","C","D"],
+   answer:"A"
  });
 }
 
 
-// === TIMER ===
+// ================= TIMER =================
 let time = 32*60;
-let t = setInterval(()=>{
- let m = Math.floor(time/60);
- let s = time%60;
+let timer = setInterval(()=>{
+ let m=Math.floor(time/60);
+ let s=time%60;
  if(s<10) s="0"+s;
- document.getElementById("timer").innerHTML = `Time Left: ${m}:${s}`;
+ document.getElementById("timer").innerHTML=`Time Left: ${m}:${s}`;
  time--;
  if(time<0){
-   clearInterval(t);
-   alert("Time's up!");
-   submitExam();
+  clearInterval(timer);
+  alert("Time is over!");
+  submitExam();
  }
 },1000);
 
 
-// === RENDER PAGE ===
+// ================= RENDER PAGE =================
 function renderPage(){
 
- let start = (page-1)*10;
- let end = start+10;
+ let start=(page-1)*10;
+ let end=start+10;
 
- document.getElementById("title").innerText =
+ document.getElementById("title").innerHTML=
  `Listening — Questions ${start+1} to ${end}`;
 
  let html="";
@@ -118,17 +115,17 @@ function renderPage(){
  for(let i=start;i<end;i++){
   html += `
   <div class="questionBox">
-  <b>${questions[i].q}</b><br>
-  ${questions[i].options.map(opt=>`
-   <label>
-   <input type="radio" 
-    name="q${i}"
-    value="${opt}"
-    ${answers[i]===opt?"checked":""}
-    onchange="setAns(${i},'${opt}')">
-   ${opt}
-   </label><br>
-  `).join("")}
+   <b>${questions[i].q}</b><br>
+   ${questions[i].options.map(opt=>`
+     <label>
+     <input type="radio"
+      name="q${i}"
+      value="${opt}"
+      ${answers[i]===opt?"checked":""}
+      onchange="selectAns(${i},'${opt}')">
+     ${opt}
+     </label><br>
+   `).join("")}
   </div>`;
  }
 
@@ -137,33 +134,32 @@ function renderPage(){
 }
 
 
-// === SAVE ANSWER ===
-function setAns(i,val){
+// ================= SAVE ANSWER =================
+function selectAns(i,val){
  answers[i]=val;
  renderCircles();
 }
 
 
-// === ROUND BUTTONS (ONLY 10 PER PAGE) ===
+// ================= 10 ROUND BUTTONS ONLY =================
 function renderCircles(){
- let div = document.getElementById("numbers");
+ let div=document.getElementById("circles");
  div.innerHTML="";
 
- let start = (page-1)*10;
- let end = start+10;
+ let start=(page-1)*10;
+ let end=start+10;
 
  for(let i=start;i<end;i++){
-  let c = document.createElement("div");
+  let c=document.createElement("div");
   c.className="circle";
   if(answers[i]) c.classList.add("answered");
-  c.innerHTML = (i+1);
-  c.onclick = ()=>{};
+  c.innerHTML=i+1;
   div.appendChild(c);
  }
 }
 
 
-// === NAVIGATION ===
+// ================= NAVIGATION =================
 function nextPage(){
  if(page<4){
   page++;
@@ -179,9 +175,10 @@ function prevPage(){
 }
 
 
-// === SUBMIT ===
+// ================= SUBMIT =================
 function submitExam(){
- clearInterval(t);
+
+ clearInterval(timer);
 
  let correct=0;
  answers.forEach((a,i)=>{
@@ -198,30 +195,29 @@ function submitExam(){
  <p><b>Incorrect:</b> ${incorrect}</p>
  <p><b>Band Score:</b> ${band}</p>
  `;
-
- document.getElementById("numbers").innerHTML="";
+ document.getElementById("circles").innerHTML="";
  document.getElementById("title").innerHTML="Test Completed";
 }
 
 
-// === BAND SYSTEM (0–9) ===
-function getBand(correct){
- if(correct>=39) return 9;
- if(correct>=37) return 8.5;
- if(correct>=35) return 8;
- if(correct>=32) return 7.5;
- if(correct>=30) return 7;
- if(correct>=26) return 6.5;
- if(correct>=23) return 6;
- if(correct>=18) return 5.5;
- if(correct>=16) return 5;
- if(correct>=13) return 4.5;
- if(correct>=10) return 4;
+// ================= BAND CALC =================
+function getBand(c){
+ if(c>=39) return 9;
+ if(c>=37) return 8.5;
+ if(c>=35) return 8;
+ if(c>=32) return 7.5;
+ if(c>=30) return 7;
+ if(c>=26) return 6.5;
+ if(c>=23) return 6;
+ if(c>=18) return 5.5;
+ if(c>=16) return 5;
+ if(c>=13) return 4.5;
+ if(c>=10) return 4;
  return 0;
 }
 
 renderPage();
-</script>
 
+</script>
 </body>
 </html>
